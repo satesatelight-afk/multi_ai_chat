@@ -1,7 +1,18 @@
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
-fn greet(name: &str) -> String {
-    format!("Hello, {}! You've been greeted from Rust!", name)
+async fn greet(name: String) -> tauri::Result<String> {
+    println!("tesada");
+    let res = reqwest::get("https://rust-lang.org")
+        .await
+        .unwrap()
+        .text()
+        .await
+        .unwrap();
+    print!("{:?}", res);
+    Ok(format!(
+        "Hello, {},{}! You've been greeted from Rust!",
+        name, res
+    ))
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
