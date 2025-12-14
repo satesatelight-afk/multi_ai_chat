@@ -8,47 +8,50 @@
   import { Spinner } from "$lib/components/ui/spinner";
   import { Textarea } from "$lib/components/ui/textarea/index.js";
   import { invoke } from "@tauri-apps/api/core";
-  import { md } from "../state.svelte";
+  import type MarkdownIt from "markdown-it";
 
   interface Props {
     pageState: PageState;
+    md: MarkdownIt | undefined;
   }
 
-  let { pageState = $bindable() }: Props = $props();
+  let { pageState = $bindable(), md }: Props = $props();
 
   async function chatOpenAI() {
-    const question = pageState.textarea_question;
-    pageState.diplay_question = question;
-    Object.assign(pageState, {
-      is_loading: true,
-      display_question: question,
-      textarea_question: "",
-    });
+    if (md) {
+      const question = pageState.textarea_question;
+      pageState.diplay_question = question;
+      Object.assign(pageState, {
+        is_loading: true,
+        display_question: question,
+        textarea_question: "",
+      });
 
-    const question_history_chat = md.render(question);
+      const question_history_chat = md.render(question);
 
-    pageState.chat_history.push({
-      role: Role.User,
-      chat: question_history_chat,
-    });
+      pageState.chat_history.push({
+        role: Role.User,
+        chat: question_history_chat,
+      });
 
-    const answer = await invoke<string>("chat_open_ai", {
-      input: pageState.chat_history
-        .map((c) => role_to_string(c.role) + ":" + c.chat)
-        .join("\n"),
-    });
+      const answer = await invoke<string>("chat_open_ai", {
+        input: pageState.chat_history
+          .map((c) => role_to_string(c.role) + ":" + c.chat)
+          .join("\n"),
+      });
 
-    const answer_history_chat = md.render(answer);
+      const answer_history_chat = md.render(answer);
 
-    pageState.chat_history.push({
-      role: Role.ChatGPT,
-      chat: answer_history_chat,
-    });
+      pageState.chat_history.push({
+        role: Role.ChatGPT,
+        chat: answer_history_chat,
+      });
 
-    Object.assign(pageState, {
-      is_loading: false,
-      display_question: "",
-    });
+      Object.assign(pageState, {
+        is_loading: false,
+        display_question: "",
+      });
+    }
   }
 </script>
 
